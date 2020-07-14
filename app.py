@@ -16,26 +16,19 @@ app.debug = True
 @app.route('/')
 def index():
     wifi_ap_array = scan_wifi_networks()
-    config_hash = config_file_hash()
 
-    return render_template('app.html', wifi_ap_array = wifi_ap_array, config_hash = config_hash)
+    return render_template('app.html', wifi_ap_array = wifi_ap_array)
 
 
 @app.route('/status')
 def status():
     wifi_ap_array = scan_wifi_networks()
-    config_hash = config_file_hash()
 
-    return render_template('app.html', wifi_ap_array = wifi_ap_array, config_hash = config_hash)
+    return render_template('app.html', wifi_ap_array = wifi_ap_array)
 
 @app.route('/manual_ssid_entry')
 def manual_ssid_entry():
     return render_template('manual_ssid_entry.html')
-
-@app.route('/wpa_settings')
-def wpa_settings():
-    config_hash = config_file_hash()
-    return render_template('wpa_settings.html', wpa_enabled = config_hash['wpa_enabled'], wpa_key = config_hash['wpa_key'])
 
 
 @app.route('/save_credentials', methods = ['GET', 'POST'])
@@ -58,7 +51,6 @@ def save_credentials():
 
 @app.route('/save_wpa_credentials', methods = ['GET', 'POST'])
 def save_wpa_credentials():
-    config_hash = config_file_hash()
     wpa_enabled = request.form.get('wpa_enabled')
     wpa_key = request.form['wpa_key']
 
@@ -74,8 +66,7 @@ def save_wpa_credentials():
     t = Thread(target=sleep_and_reboot_for_wpa)
     t.start()
 
-    config_hash = config_file_hash()
-    return render_template('save_wpa_credentials.html', wpa_enabled = config_hash['wpa_enabled'], wpa_key = config_hash['wpa_key'])
+    return render_template('save_wpa_credentials.html')
 
 
 
