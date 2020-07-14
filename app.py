@@ -16,6 +16,7 @@ app.debug = True
 @app.route('/')
 def index():
     wifi_ap_array = scan_wifi_networks()
+    print(wifi_ap_array)
 
     return render_template('app.html', wifi_ap_array = wifi_ap_array)
 
@@ -38,13 +39,13 @@ def save_credentials():
 
     create_wpa_supplicant(ssid, wifi_key)
     
-    # # Call set_ap_client_mode() in a thread otherwise the reboot will prevent
-    # # the response from getting to the browser
-    # def sleep_and_start_ap():
-    #     time.sleep(2)
-    #     set_ap_client_mode()
-    # t = Thread(target=sleep_and_start_ap)
-    # t.start()
+    # Call set_ap_client_mode() in a thread otherwise the reboot will prevent
+    # the response from getting to the browser
+    def sleep_and_start_ap():
+        time.sleep(5)
+        os.system('reboot')
+    t = Thread(target=sleep_and_start_ap)
+    t.start()
 
     return render_template('save_credentials.html', ssid = ssid)
 
