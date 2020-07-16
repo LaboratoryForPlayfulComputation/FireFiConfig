@@ -22,13 +22,14 @@ app.wifiserver = 'http://localhost:8080/'
 @app.route('/')
 def index():
     hotspot_status = requests.get(app.wifiserver + 'status')
-    print(hotspot_status)
-
+    hotspot_json = hotspot_status.json()
+    print(hotspot_json)
+    print(hotspot_json['payload'])
 
     wifi_ap_array = scan_wifi_networks()
     print(wifi_ap_array)
 
-    return render_template('app.html', wifi_ap_array = wifi_ap_array, iotwifi_status = hotspot_status)
+    return render_template('app.html', wifi_ap_array = wifi_ap_array, iotwifi_status = hotspot_status['status'])
 
 
 @app.route('/status')
@@ -47,23 +48,13 @@ def save_credentials():
     ssid = request.form['ssid']
     wifi_key = request.form['wifi_key']
 
-    # we should not need to do this as the wifiiot endpoint should
-    # take care of this for us
-    # create_wpa_supplicant(ssid, wifi_key)
-    
-    # Call set_ap_client_mode() in a thread otherwise the reboot will prevent
-    # the response from getting to the browser
-    # def sleep_and_start_ap():
-    #     time.sleep(5)
-    #     os.system('reboot')
-    # t = Thread(target=sleep_and_start_ap)
-    # t.start()
-
     # make a curl call to our other server that is in charge of wifi connection
     # curl -w "\n" -d '{"ssid":"Mp", "psk":"12345678"}'      -H "Content-Type: application/json"      -X POST localhost:8080/connect
     data = '{"ssid":' + ssid + ', "psk":' + wifi_key + '}'
+    print(data)
     headers = {'Content-type': 'application/json; charset=UTF-8'}
     response = requests.post(app.wifiserver + "connect", data=data, headers=headers)
+
     # wait for the response. it should not be higher 
     # than keep alive time for TCP connection
 
