@@ -16,7 +16,7 @@ app = Flask(__name__)
 app.debug = True
 
 # this is the iotwifi docker container that we're talking to
-app.wifiserver = 'http://192.168.27.1:8080/'
+app.wifiserver = 'http://localhost:8080/'
 
 
 @app.route('/')

@@ -7,9 +7,14 @@
  {% block scripts %}
     <script>
     $(function(){
-      $('#join-network-btn').click(function(){
+      $('#join-network-btn').click(function(e){
+        e.preventDefault();
+        console.log("hello");
+
         var url = $('form').prop('action');
-        var data = '{"ssid":"PowPowPow!", "psk":"zgnomimalone"}';
+        var ssid = $('#ssid :selected').val();
+        var wifi_key = $('#wifi-key-field').val();
+        var data = {"ssid": ssid, "psk": wifi_key};
         console.log(url);
         console.log(data)
         $.ajax({
@@ -19,13 +24,15 @@
           dataType: 'json',
           contentType: 'application/json',
           success: function(response){
-            window.location.href = "/connect?success=true"  
-            console.log(response)
+            console.log("success!");
+            console.log(response);
+            window.location.href = "/connect?success=true";
           },
           error: function(error){
-            console.log(error)
-            console.log(error.statusCode())
-            window.location.href = "/connect?success=false"  
+            console.log("error!");
+            console.log(error);
+            console.log(error.statusCode());
+            window.location.href = "/connect?success=false";
           }
         });
       });
