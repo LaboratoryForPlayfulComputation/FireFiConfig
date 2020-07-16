@@ -24,19 +24,23 @@ def index():
     hotspot_status = requests.get(app.wifiserver + 'status')
     hotspot_json = hotspot_status.json()
     print(hotspot_json)
-    print(hotspot_json['payload'])
+    
+    connected_wifi = 'not connected'
+    if 'ssid' in hotspot_json['payload']:
+        connected_wifi = hotspot_json['payload']['ssid']
 
     wifi_ap_array = scan_wifi_networks()
     print(wifi_ap_array)
 
-    return render_template('app.html', wifi_ap_array = wifi_ap_array, iotwifi_status = hotspot_json['status'], connected_wifi = hotspot_json['payload']['ssid'])
+    return render_template('app.html', wifi_ap_array = wifi_ap_array, \
+        iotwifi_status = hotspot_json['status'], connected_wifi = connected_wifi)
 
 
-@app.route('/status')
-def status():
-    wifi_ap_array = scan_wifi_networks()
+# @app.route('/status')
+# def status():
+#     wifi_ap_array = scan_wifi_networks()
 
-    return render_template('app.html', wifi_ap_array = wifi_ap_array)
+#     return render_template('app.html', wifi_ap_array = wifi_ap_array)
 
 @app.route('/manual_ssid_entry')
 def manual_ssid_entry():
