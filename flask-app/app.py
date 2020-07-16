@@ -4,14 +4,19 @@ import os
 import time
 from threading import Thread
 import fileinput
+import requests
 
 # this app is based on the configuration app from RaspiWiFi
 # https://github.com/jasbur/RaspiWiFi
 
+# but now it diverges quite significantly
+
 # start our application
 app = Flask(__name__)
 app.debug = True
-app.wifiserver = 'localhost:8080/'
+
+# this is the iotwifi docker container that we're talking to
+app.wifiserver = 'http://localhost:8080/'
 
 
 @app.route('/')
@@ -23,7 +28,7 @@ def index():
     wifi_ap_array = scan_wifi_networks()
     print(wifi_ap_array)
 
-    return render_template('app.html', wifi_ap_array = wifi_ap_array)
+    return render_template('app.html', wifi_ap_array = wifi_ap_array, iotwifi_status = iotwifi)
 
 
 @app.route('/status')
@@ -56,10 +61,9 @@ def save_credentials():
 
     # make a curl call to our other server that is in charge of wifi connection
     # curl -w "\n" -d '{"ssid":"Mp", "psk":"12345678"}'      -H "Content-Type: application/json"      -X POST localhost:8080/connect
-    url = 'localhost:8080/connect'
     data = '{"ssid":' + ssid + ', "psk":' + wifi_key + '}'
     headers = {'Content-type': 'application/json; charset=UTF-8'}
-    response = requests.post(url, data=data, headers=headers)
+    response = requests.post(app.wifiserver + "connect", data=data, headers=headers)
     # wait for the response. it should not be higher 
     # than keep alive time for TCP connection
 
