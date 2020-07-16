@@ -16,138 +16,47 @@ app = Flask(__name__)
 app.debug = True
 
 # this is the iotwifi docker container that we're talking to
-app.wifiserver = 'http://127.0.0.1:8080/'
+app.wifiserver = 'http://192.168.27.1:8080/'
 
 
 @app.route('/')
 def index():
+    print(request.args)
     hotspot_status = requests.get(app.wifiserver + 'status')
     hotspot_json = hotspot_status.json()
-    print(hotspot_json)
     
     connected_wifi = 'not connected'
     if 'ssid' in hotspot_json['payload']:
         connected_wifi = hotspot_json['payload']['ssid']
 
-    wifi_ap_array = scan_wifi_networks()
-    print(wifi_ap_array)
+    # wifi_ap_array = scan_wifi_networks()
+    wifi_ap_array = requests.get(app.wifiserver + 'scan')
+    wifi_ap_array = [k for k in wifi_ap_array.json()['payload']]
 
     return render_template('app.html', wifi_ap_array = wifi_ap_array, \
-        iotwifi_status = hotspot_json['status'], connected_wifi = connected_wifi)
-
-
-# @app.route('/status')
-# def status():
-#     wifi_ap_array = scan_wifi_networks()
-
-#     return render_template('app.html', wifi_ap_array = wifi_ap_array)
+        iotwifi_status = hotspot_json['status'], connected_wifi = connected_wifi, post_to = app.wifiserver + "connect")
 
 @app.route('/manual_ssid_entry')
 def manual_ssid_entry():
     return render_template('manual_ssid_entry.html')
 
-
-@app.route('/save_credentials', methods = ['GET', 'POST'])
+@app.route('/connect', methods = ['GET'])
 def save_credentials():
-    ssid = request.form['ssid']
-    wifi_key = request.form['wifi_key']
+    success = request.args.get('success')
 
-    # make a curl call to our other server that is in charge of wifi connection
-    # curl -w "\n" -d '{"ssid":"Mp", "psk":"12345678"}'      -H "Content-Type: application/json"      -X POST localhost:8080/connect
-    data = '{"ssid":' + ssid + ', "psk":' + wifi_key + '}'
-    print(data)
-    headers = {'Content-type': 'application/json; charset=UTF-8'}
-    response = requests.post(app.wifiserver + "connect", data=data, headers=headers)
+    # hotspot_status = requests.get(app.wifiserver + 'status')
+    # hotspot_json = hotspot_status.json()
+    
+    connected_wifi = 'not connected'
+    # if 'ssid' in hotspot_json['payload']:
+    #     connected_wifi = hotspot_json['payload']['ssid']
 
 
-    # global req_counter 
-
-    # url = app.wifiserver + "connect"
-    # data = '{"ssid":' + ssid + ', "psk":' + wifi_key + '}'
-    # if req_counter == 0:    
-    #     t = Thread(target=send_post_req, args=(url, data))
-    #     t.setDaemon(True)
-    #     t.start()
-    #     req_counter = 1  # use req_counter if you want to send request only one time
-
-    # if shared_var:
-    #     # render some page or redirect to desired url using:
-    #     # return redirect(url_for('some_route_name'))
-    #     # or 
-    #     # return redirect("some_url")
-    #     return render_template("some_page.html", message=str(shared_var))
-
-    # wait for the response. it should not be higher 
-    # than keep alive time for TCP connection
-
-    # render template or redirect to some url:
-    # return redirect("some_url")
-
-    return render_template('save_credentials.html', ssid = ssid)
+    return render_template('save_credentials.html', success = success, ssid = connected_wifi)
 
 ######## FUNCTIONS ##########
 
 
-# def create_dnsmasq():
-#     # should go to /etc/dnsmasq.conf
-#     create_file = subprocess.Popen(['cp', './configs/dnsmasq.conf', '/etc/dnsmasq.conf'])
-#     print(create_file)
-
-#     # then sudo service dnsmasq start
-#     start_it = subprocess.Popen(['dnsmasq', 'start'])
-#     print(start_it)
-
-# def create_hostapd_conf():
-
-#     # to see what the best channel to use is
-#     #iwlist wlan0 channel
-#     iwlist = subprocess.Popen(['iwlist', 'wlan0', 'channel'], stdout=subprocess.PIPE)
-#     ap_list, err = iwlist.communicate()
-#     ap_array = []
-
-#     for line in ap_list.decode('utf-8').rsplit('\n'):
-#         print(line)
-
-#     # add DAEMON_CONF="/etc/hostapd/hostapd.conf"
-#     # to /etc/default/hostapd
-
-#     # copy hostapdstart to /usr/local/bin/hostapdstart
-#     # then chmod 775 /usr/local/bin/hostapdstart
-
-
-
-# def test_connections():
-#     # command for scanning the networks on on a pi
-#     ifconfig = subprocess.Popen(['ifconfig'], stdout=subprocess.PIPE)
-#     ap_list, err = ifconfig.communicate()
-#     ap_array = []
-
-#     for line in ap_list.decode('utf-8').rsplit('\n'):
-#         print(line)
-#         # if 'ESSID' in line:
-#         #     ap_ssid = line[27:-1]
-#         #     if ap_ssid != '':
-#         #         ap_array.append(ap_ssid)
-
-    # return ap_array
-
-def scan_wifi_networks():
-    # could theoretically also get this by accessing
-    # localhost:8080/scan
-
-
-    # command for scanning the networks on on a pi
-    iwlist_raw = subprocess.Popen(['iwlist', 'scan'], stdout=subprocess.PIPE)
-    ap_list, err = iwlist_raw.communicate()
-    ap_array = []
-
-    for line in ap_list.decode('utf-8').rsplit('\n'):
-        if 'ESSID' in line:
-            ap_ssid = line[27:-1]
-            if ap_ssid != '':
-                ap_array.append(ap_ssid)
-
-    return ap_array
 
 # def create_wpa_supplicant(ssid, wifi_key):
 #     temp_conf_file = open('wpa_supplicant.conf.tmp', 'w')
@@ -178,22 +87,6 @@ def scan_wifi_networks():
 #     os.system('mv /etc/dhcpcd.conf.original /etc/dhcpcd.conf')
 #     os.system('reboot')
 
-def update_wpa(wpa_enabled, wpa_key):
-    with fileinput.FileInput('/etc/raspiwifi/raspiwifi.conf', inplace=True) as raspiwifi_conf:
-        for line in raspiwifi_conf:
-            if 'wpa_enabled=' in line:
-                line_array = line.split('=')
-                line_array[1] = wpa_enabled
-                print(line_array[0] + '=' + str(line_array[1]))
-
-            if 'wpa_key=' in line:
-                line_array = line.split('=')
-                line_array[1] = wpa_key
-                print(line_array[0] + '=' + line_array[1])
-
-            if 'wpa_enabled=' not in line and 'wpa_key=' not in line:
-                print(line, end='')
-
 
 # def config_file_hash():
 #     config_file = open('/etc/raspiwifi/raspiwifi.conf')
@@ -213,4 +106,4 @@ if __name__ == '__main__':
     # if config_hash['ssl_enabled'] == "1":
     #     app.run(host = '0.0.0.0', port = int(config_hash['server_port']), ssl_context='adhoc')
     # else:
-    app.run(host = '0.0.0.0', port = 80)
+    app.run(host = '0.0.0.0', port = 3001)

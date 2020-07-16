@@ -1,19 +1,29 @@
 {% extends 'layout.html' %}
 
+
 {% block body %}
   <div id="mainContent">
+
+
+   
+
+    <div id="wifiStatus">
+      <p> wifi hotspot management status: {{ iotwifi_status }}</p>
+      <p> you are currently connected to: {{ connected_wifi }}</p>
+    </div>
+
     <h1>WiFi Setup</h1>
     <div class="wifiIcon"></div>
 
-    <form action="{{ url_for('save_credentials') }}" method=post>
+    <form id="join-network">
       <ul>
         <li><label for="ssid">Enter your network SSID:</label></li>
         <li><input type="text" name="ssid", class="wifiNetworkInputs"></li>
 
         <li><label for="wifi_key">Your Wifi password</label></li>
-        <li><input type="password" name="wifi_key", class="wifiNetworkInputs"></li>
+        <li><input id="wifi-key-field" type="password" name="wifi_key", class="wifiNetworkInputs"></li>
 
-        <input type="submit", class="wifiConnectButton">
+        <button class="btn btn-primary wifiConnectButton" form="join-network" id="join-network-btn">Join</button>
       </ul>
     </form>
   </div>

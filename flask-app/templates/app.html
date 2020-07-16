@@ -3,6 +3,38 @@
 {% block body %}
   <div id="mainContent">
 
+
+ {% block scripts %}
+    <script>
+    $(function(){
+      $('#join-network-btn').click(function(){
+        var url = $('form').prop('action');
+        var data = '{"ssid":"PowPowPow!", "psk":"zgnomimalone"}';
+        console.log(url);
+        console.log(data)
+        $.ajax({
+          url: url,
+          data: data,
+          type: 'POST',
+          dataType: 'json',
+          contentType: 'application/json',
+          success: function(response){
+            window.location.href = "/connect?success=true"  
+            console.log(response)
+          },
+          error: function(error){
+            console.log(error)
+            console.log(error.statusCode())
+            window.location.href = "/connect?success=false"  
+          }
+        });
+      });
+    });
+    </script>
+  {% endblock %}
+
+
+
     <div id="wifiStatus">
       <p> wifi hotspot management status: {{ iotwifi_status }}</p>
       <p> you are currently connected to: {{ connected_wifi }}</p>
@@ -11,7 +43,7 @@
     <h1>WiFi Setup</h1>
     <div class="wifiIcon"></div>
 
-    <form action="{{ url_for('save_credentials') }}" method=post>
+    <form id="join-network" action="{{ post_to }}" method="post">
       <ul>
         <li><label for="ssid">Select your WiFi network</label></li>
 
@@ -26,10 +58,13 @@
         <li><a href="{{ url_for('manual_ssid_entry') }}" class="manualSSIDEntry">manual SSID entry -></a></li>
 
         <li><label for="wifi_key">Your Wifi password</label></li>
-        <li><input type="password" name="wifi_key", class="wifiNetworkInputs"></li>
+        <li><input id="wifi-key-field" type="password" name="wifi_key", class="wifiNetworkInputs"></li>
 
-        <input type="submit", class="wifiConnectButton">
+        <button type="submit" class="btn btn-primary wifiConnectButton" form="join-network" id="join-network-btn">Join</button>
       </ul>
     </form>
+
+
+
   </div>
 {% endblock %}
