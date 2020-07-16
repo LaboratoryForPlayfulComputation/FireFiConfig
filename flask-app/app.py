@@ -16,7 +16,7 @@ app = Flask(__name__)
 app.debug = True
 
 # this is the iotwifi docker container that we're talking to
-app.wifiserver = 'http://localhost:8080/'
+app.wifiserver = 'http://127.0.0.1:8080/'
 
 
 @app.route('/')
@@ -58,6 +58,24 @@ def save_credentials():
     print(data)
     headers = {'Content-type': 'application/json; charset=UTF-8'}
     response = requests.post(app.wifiserver + "connect", data=data, headers=headers)
+
+
+    # global req_counter 
+
+    # url = app.wifiserver + "connect"
+    # data = '{"ssid":' + ssid + ', "psk":' + wifi_key + '}'
+    # if req_counter == 0:    
+    #     t = Thread(target=send_post_req, args=(url, data))
+    #     t.setDaemon(True)
+    #     t.start()
+    #     req_counter = 1  # use req_counter if you want to send request only one time
+
+    # if shared_var:
+    #     # render some page or redirect to desired url using:
+    #     # return redirect(url_for('some_route_name'))
+    #     # or 
+    #     # return redirect("some_url")
+    #     return render_template("some_page.html", message=str(shared_var))
 
     # wait for the response. it should not be higher 
     # than keep alive time for TCP connection
