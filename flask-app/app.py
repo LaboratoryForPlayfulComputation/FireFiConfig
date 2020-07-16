@@ -29,7 +29,7 @@ def index():
     wifi_ap_array = scan_wifi_networks()
     print(wifi_ap_array)
 
-    return render_template('app.html', wifi_ap_array = wifi_ap_array, iotwifi_status = hotspot_status['status'])
+    return render_template('app.html', wifi_ap_array = wifi_ap_array, iotwifi_status = hotspot_json['status'])
 
 
 @app.route('/status')
