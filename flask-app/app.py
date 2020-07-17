@@ -40,19 +40,43 @@ def index():
 def manual_ssid_entry():
     return render_template('manual_ssid_entry.html')
 
-@app.route('/connect', methods = ['GET'])
+
+@app.route('/save_credentials', methods = ['GET', 'POST'])
 def save_credentials():
-    success = request.args.get('success')
+    ssid = request.form['ssid']
+    wifi_key = request.form['wifi_key']
 
-    # hotspot_status = requests.get(app.wifiserver + 'status')
-    # hotspot_json = hotspot_status.json()
+    newHeaders = {'Content-type': 'application/json'}
+
+    response = requests.post(app.wifiserver + "connect",
+                         data={'ssid': ssid, 'psk': wifi_key},
+                         headers=newHeaders)
+
+    print("Status code: ", response.status_code)
     
-    connected_wifi = 'not connected'
-    # if 'ssid' in hotspot_json['payload']:
-    #     connected_wifi = hotspot_json['payload']['ssid']
+    # Call set_ap_client_mode() in a thread otherwise the reboot will prevent
+    # the response from getting to the browser
+    # def sleep_and_start_ap():
+    #     time.sleep(2)
+    #     set_ap_client_mode()
+    # t = Thread(target=sleep_and_start_ap)
+    # t.start()
+
+    return render_template('save_credentials.html', success = response.status_code, ssid = ssid)
+
+# @app.route('/connect', methods = ['GET'])
+# def save_credentials():
+#     success = request.args.get('success')
+
+#     # hotspot_status = requests.get(app.wifiserver + 'status')
+#     # hotspot_json = hotspot_status.json()
+    
+#     connected_wifi = 'not connected'
+#     # if 'ssid' in hotspot_json['payload']:
+#     #     connected_wifi = hotspot_json['payload']['ssid']
 
 
-    return render_template('save_credentials.html', success = success, ssid = connected_wifi)
+#     return render_template('save_credentials.html', success = success, ssid = connected_wifi)
 
 ######## FUNCTIONS ##########
 
@@ -106,4 +130,4 @@ if __name__ == '__main__':
     # if config_hash['ssl_enabled'] == "1":
     #     app.run(host = '0.0.0.0', port = int(config_hash['server_port']), ssl_context='adhoc')
     # else:
-    app.run(host = '0.0.0.0', port = 3001)
+    app.run(host = '0.0.0.0', port = 80)
