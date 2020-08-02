@@ -1,0 +1,41 @@
+
+<html>
+<head>
+    <title>Item Details</title>
+    <link href="{{ url_for('static', path='/styles.css') }}" rel="stylesheet">
+</head>
+<body>
+  <div>
+  <h2> Connection interfaces available </h2>
+    <ul>
+
+        {% for connection in connections %}
+        <li class="connection-interface">            
+              {{ connection.interface }} </br>
+              {{ connection.flags }} </br>
+              {{ connection.inet }} </br>
+              {{ connection.running }} </br>
+              {{ connection.iswifi }} </br>
+        </li>
+        {% endfor %}
+    </ul>
+  </div>
+  <div>
+    <h2> Connect to a new WiFi network </h2>
+    <ul>
+        <li><label for="ssid">Select your WiFi network</label></li>
+
+        <li class="wifiNetwork">
+          <select id="ssid" name="ssid", class="wifiNetworkInputs">
+            {% for ssid in wifi_ap_array %}
+              <option value='{{ ssid }}'>{{ ssid }}</option>
+            {% endfor %}
+          </select>
+        </li>
+    </ul>
+  </div>
+  <div>
+      <h2>Zerotier Status</h2>
+      <p>Zerotier installed: {{zerotier-exists}}</p>
+  </div>
+</body>

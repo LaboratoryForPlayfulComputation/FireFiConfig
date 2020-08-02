@@ -16,7 +16,8 @@ app = Flask(__name__)
 app.debug = True
 
 # this is the iotwifi docker container that we're talking to
-app.wifiserver = 'http://localhost:8080/'
+# app.wifiserver = 'http://192.168.27.1:8080/'
+# app.wifiserver = 'http://10.0.0.97:8080/'
 
 
 @app.route('/')
@@ -46,23 +47,34 @@ def save_credentials():
     ssid = request.form['ssid']
     wifi_key = request.form['wifi_key']
 
-    newHeaders = {'Content-type': 'application/json'}
+    # newHeaders = {'Content-type': 'application/json'}
 
-    response = requests.post(app.wifiserver + "connect",
-                         data={'ssid': ssid, 'psk': wifi_key},
-                         headers=newHeaders)
 
-    print("Status code: ", response.status_code)
+
+    # print("Status code: ", response.status_code)
     
-    # Call set_ap_client_mode() in a thread otherwise the reboot will prevent
-    # the response from getting to the browser
+    # # Call set_ap_client_mode() in a thread otherwise the reboot will prevent
+    # # the response from getting to the browser
     # def sleep_and_start_ap():
     #     time.sleep(2)
-    #     set_ap_client_mode()
+    #     response = requests.post(app.wifiserver + "connect",
+    #             json={'ssid': ssid, 'psk': wifi_key})
     # t = Thread(target=sleep_and_start_ap)
     # t.start()
 
-    return render_template('save_credentials.html', success = response.status_code, ssid = ssid)
+
+    # here's a curl statement that works!
+    # janky janky "fix" time! Let's see if Popen works!
+    # post_r = subprocess.Popen(['curl', '-d', '{"ssid":"PowPowPow!", "psk":"zgnomimalone"}', \
+        # '-H', '"Content-Type: application/json"', '-X', 'POST', app.wifiserver + "connect"], stdout=subprocess.PIPE)
+
+    post_r = subprocess.Popen(['./static/post_connect.sh', ssid, wifi_key])
+    ap_list, err = post_r.communicate()
+    print(ap_list)
+    print(err)
+    # curl -w "\n" -d '{"ssid":"PowPowPow!", "psk":"zgnomimalone"}'      -H "Content-Type: application/json"      -X POST http://192.168.27.1:8080/connect
+
+    return render_template('save_credentials.html', success = "false", ssid = ssid)
 
 # @app.route('/connect', methods = ['GET'])
 # def save_credentials():
@@ -130,4 +142,4 @@ if __name__ == '__main__':
     # if config_hash['ssl_enabled'] == "1":
     #     app.run(host = '0.0.0.0', port = int(config_hash['server_port']), ssl_context='adhoc')
     # else:
-    app.run(host = '0.0.0.0', port = 80)
+    app.run(host = '0.0.0.0', port = 3001)
