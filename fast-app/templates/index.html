@@ -5,23 +5,46 @@
     <link href="{{ url_for('static', path='/styles.css') }}" rel="stylesheet">
 </head>
 <body>
+  
   <div>
   <h2> Connection interfaces available </h2>
     <ul>
 
-        {% for connection in connections %}
+        {% for connection in connections_array %}
         <li class="connection-interface">            
-              {{ connection.interface }} </br>
-              {{ connection.flags }} </br>
-              {{ connection.inet }} </br>
-              {{ connection.running }} </br>
-              {{ connection.iswifi }} </br>
+              {{ connection['interface'] }} </br>
+              {{ connection['flags'] }} </br>
+              {{ connection['running'] }} </br>
+              {{ connection['inet'] }} </br>
+              {{ connection['is_wifi'] }} </br>
+
         </li>
         {% endfor %}
     </ul>
   </div>
   <div>
+    <h2>Start a hotspot</h2>
+    <form id="start-hotspot" action="{{ url_for('start_hotspot')}}" method=post>
+    <ul>
+        <li><label for="interface">What interface do you want to use to start a hotspot?</label></li>
+
+        <li class="wifiNetwork">
+          <select id="interface" name="interface">
+            {% for connection in connections_array %}
+            
+              <option value="{{ connection['interface'] }}">{{ connection['interface'] }}</option>
+            {% endfor %}
+          </select>
+        </li>
+        <li><label for="hotspot_name">What is the name of your hotspot?</label></li>
+        <li><input id="hotspot_name" name="hotspot_name"></li>
+        <button type="submit" class="btn btn-primary hotspot-start-button" form="start-hotspot" id="start-hotspot-btn">Start</button>
+    </ul>
+    </form>
+  </div>
+  <div>
     <h2> Connect to a new WiFi network </h2>
+    <form id="join-network" action="{{ url_for('save_credentials')}}" method=post>
     <ul>
         <li><label for="ssid">Select your WiFi network</label></li>
 
@@ -32,10 +55,14 @@
             {% endfor %}
           </select>
         </li>
+        <li><label for="wifi_key">Your Wifi password</label></li>
+        <li><input id="wifi_key" name="wifi_key" type="password"></li>
+        <button type="submit" class="btn btn-primary wifi-connect-button" form="join-network" id="join-network-btn">Join</button>
     </ul>
+    </form>
   </div>
   <div>
       <h2>Zerotier Status</h2>
-      <p>Zerotier installed: {{zerotier-exists}}</p>
+      <p>Zerotier installed: {{zerotier_exists}}</p>
   </div>
 </body>
