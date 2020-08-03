@@ -72,7 +72,7 @@ async def save_credentials(ssid: str = Form(...), wifi_key: str = Form(...)):
     return {"name": ssid, "password": wifi_key}
 
 @app.post("/routed_ap/")
-async def routed_ap(ap_interface: str = Form(...), wifi_interface: str = Form(...)):
+async def routed_ap(request: Request, ap_interface: str = Form(...), wifi_interface: str = Form(...)):
     # https://www.raspberrypi.org/documentation/configuration/wireless/access-point-routed.md
     # change wlan0 to wlan1
     # change eth0 to wlan0
@@ -88,7 +88,15 @@ async def routed_ap(ap_interface: str = Form(...), wifi_interface: str = Form(..
     os.system('sudo cp ./static/routedapconfigs/dnsmasq.conf /etc/dnsmasq.conf')
     os.system('sudo rfkill unblock wlan')
     os.system('sudo cp ./static/routedapconfigs/hostapd.conf /etc/hostapd/hostapd.conf')
-    time.sleep(5)
+    # at this point, we'll need to reboot the pi
+    return templates.TemplateResponse("reboot.html", \
+        {"request": request})
+
+
+# TODO: make page to reset the pi to "regular" settings
+
+@app.get("/reboot/")
+async def reboot(request: Request):
     os.system('sudo systemctl reboot')
     return "Success!"
 
@@ -124,11 +132,9 @@ async def start_hotspot(interface: str = Form(...), hotspot_name: str = Form(...
     os.system('sudo systemctl unmask hostapd')
     os.system('sudo systemctl enable hostapd')
 
-    time.sleep(5)
-    # then we'll want to reboot your pi
-    os.system('sudo reboot')
-    
-    return {"interface": interface, "hotspot_name": hotspot_name}
+    # at this point, we'll need to reboot the pi
+    return templates.TemplateResponse("reboot.html", \
+        {"request": request})
 
 
 ######## FUNCTIONS ##########
