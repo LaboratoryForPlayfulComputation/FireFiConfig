@@ -43,6 +43,7 @@ async def index(request: Request):
     
     # we want to enable connecting to a wifi network
     wifi_ap_array = scan_wifi_networks()
+    print(wifi_ap_array)
 
     # we want to know if we are emitting a hotspot
     # we want to know if we are connected to a wifi network
@@ -77,11 +78,11 @@ async def start_hotspot(interface: str = Form(...), hotspot_name: str = Form(...
     # 1. remove wpa_supplicant
     # os.system('rm /etc/wpa_supplicant/wpa_supplicant.conf')
     # set up new dhcpcd
-    os.system('sudo mv /etc/dhcpcd.conf /etc/dhcpcd.conf.original')
-    os.system('sudo mv ./static/hotspotconfigs/dhcpcd.conf /etc/')
+    os.system('sudo cp /etc/dhcpcd.conf /etc/dhcpcd.conf.original')
+    os.system('sudo cp ./static/hotspotconfigs/dhcpcd.conf /etc/')
     # same but for dnsmasq
-    os.system('sudo mv /etc/dnsmasq.conf /etc/dnsmasq.conf.original')
-    os.system('sudo mv ./static/hotspotconfigs/dnsmasq.conf /etc/')
+    os.system('sudo cp /etc/dnsmasq.conf /etc/dnsmasq.conf.original')
+    os.system('sudo cp ./static/hotspotconfigs/dnsmasq.conf /etc/')
     
     # set up hostapd
     # this is where we will inject the hotspot name
@@ -90,8 +91,13 @@ async def start_hotspot(interface: str = Form(...), hotspot_name: str = Form(...
     # ~ ssid=temp-ssid
     # ~ channel=1
 
-    os.system('sudo mv ./static/hotspotconfigs/hostapd.conf /etc/')
+    os.system('sudo cp ./static/hotspotconfigs/hostapd.conf /etc/')
     
+    # make it so that hostapd starts on reboot
+    os.system('cp ./static/hotspotconfigs/runhotspot.sh /home/pi')
+    os.system('sudo cp ./static/hotspotconfigs/hotspot.service /lib/systemd/system/hotspot.service')
+    os.system('sudo systemctl daemon-reload')
+    os.system('sudo systemctl enable hotspot.service')
     # then we'll want to reboot your pi
     os.system('sudo reboot')
     
