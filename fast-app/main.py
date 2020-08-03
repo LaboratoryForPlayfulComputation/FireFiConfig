@@ -11,6 +11,7 @@ from pydantic import BaseModel
 
 import os
 import subprocess
+import time
 
 
 templates = Jinja2Templates(directory="templates")
@@ -69,6 +70,28 @@ async def save_credentials(ssid: str = Form(...), wifi_key: str = Form(...)):
     # set up dhcpd
     
     return {"name": ssid, "password": wifi_key}
+
+@app.post("/routed_ap/")
+async def routed_ap(ap_interface: str = Form(...), wifi_interface: str = Form(...)):
+    # https://www.raspberrypi.org/documentation/configuration/wireless/access-point-routed.md
+    # change wlan0 to wlan1
+    # change eth0 to wlan0
+    # make sure wpa_supplicant file is set up
+    os.system('sudo cp ./static/routedapconfigs/wpa_supplicant.conf /etc/wpa_supplicant/wpa_supplicant.conf')
+    os.system('sudo systemctl unmask hostapd')
+    os.system('sudo systemctl enable hostapd')
+    os.system('sudo cp ./static/routedapconfigs/dhcpcd.conf /etc/dhcpcd.conf')
+    os.system('sudo cp ./static/routedapconfigs/routed-ap.conf /etc/sysctl.d/routed-ap.conf')
+    os.system('sudo iptables -t nat -A POSTROUTING -o wlan0 -j MASQUERADE')
+    os.system('sudo netfilter-persistent save')
+    os.system('sudo mv /etc/dnsmasq.conf /etc/dnsmasq.conf.orig')
+    os.system('sudo cp ./static/routedapconfigs/dnsmasq.conf /etc/dnsmasq.conf')
+    os.system('sudo rfkill unblock wlan')
+    os.system('sudo cp ./static/routedapconfigs/hostapd.conf /etc/hostapd/hostapd.conf')
+    time.sleep(5)
+    os.system('sudo systemctl reboot')
+    return "Success!"
+
     
 @app.post("/start_hotspot/")
 async def start_hotspot(interface: str = Form(...), hotspot_name: str = Form(...)):
@@ -76,7 +99,7 @@ async def start_hotspot(interface: str = Form(...), hotspot_name: str = Form(...
     
     # for the raspiwifi settings:
     # 1. remove wpa_supplicant
-    # os.system('rm /etc/wpa_supplicant/wpa_supplicant.conf')
+    os.system('sudo rm /etc/wpa_supplicant/wpa_supplicant.conf')
     # set up new dhcpcd
     os.system('sudo cp /etc/dhcpcd.conf /etc/dhcpcd.conf.original')
     os.system('sudo cp ./static/hotspotconfigs/dhcpcd.conf /etc/')
@@ -94,10 +117,14 @@ async def start_hotspot(interface: str = Form(...), hotspot_name: str = Form(...
     os.system('sudo cp ./static/hotspotconfigs/hostapd.conf /etc/')
     
     # make it so that hostapd starts on reboot
-    os.system('cp ./static/hotspotconfigs/runhotspot.sh /home/pi')
-    os.system('sudo cp ./static/hotspotconfigs/hotspot.service /lib/systemd/system/hotspot.service')
-    os.system('sudo systemctl daemon-reload')
-    os.system('sudo systemctl enable hotspot.service')
+    #os.system('cp ./static/hotspotconfigs/runhotspot.sh /home/pi')
+    #os.system('sudo cp ./static/hotspotconfigs/hotspot.service /lib/systemd/system/hotspot.service')
+    #os.system('sudo systemctl daemon-reload')
+    #os.system('sudo systemctl enable hotspot.service')
+    os.system('sudo systemctl unmask hostapd')
+    os.system('sudo systemctl enable hostapd')
+
+    time.sleep(5)
     # then we'll want to reboot your pi
     os.system('sudo reboot')
     

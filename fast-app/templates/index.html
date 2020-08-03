@@ -43,6 +43,32 @@
     </form>
   </div>
   <div>
+    <h2>Start a Routed Access Point</h2>
+    <form id="start-routed-ap" action="{{ url_for('routed_ap')}}" method=post>
+    <ul>
+        <li><label for="ap_interface">What interface do you want to use as the hotspot?</label></li>
+
+        <li class="interface-options">
+          <select id="ap_interface" name="ap_interface">
+            {% for connection in connections_array %}
+            
+              <option value="{{ connection['interface'] }}">{{ connection['interface'] }}</option>
+            {% endfor %}
+          </select>
+        </li>
+        <li class="interface-options">
+          <select id="wifi_interface" name="wifi_interface">
+            {% for connection in connections_array %}
+            
+              <option value="{{ connection['interface'] }}">{{ connection['interface'] }}</option>
+            {% endfor %}
+          </select>
+        </li>
+        <button type="submit" class="btn btn-primary hotspot-start-button" form="start-routed-ap" id="start-routed-ap-btn">Start</button>
+    </ul>
+    </form>
+  </div>
+  <div>
     <h2> Connect to a new WiFi network </h2>
     <form id="join-network" action="{{ url_for('save_credentials')}}" method=post>
     <ul>
