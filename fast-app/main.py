@@ -60,16 +60,33 @@ async def index(request: Request):
 
 
 @app.post("/save_credentials/")
-async def save_credentials(ssid: str = Form(...), wifi_key: str = Form(...)):
+async def save_credentials(request: Request, ssid: str = Form(...), wifi_key: str = Form(...)):
     # now we'll join this network and reboot your pi
     
-    # create a wpa supplicant file
+    # create a wpa supplicant file using the provided ssid and wifi key
+    #ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
+    #update_config=1
+
+    #network={
+    #	ssid="Mp"
+    #	psk="12345678"
+    #}
+
+    # make sure that the correct interface is turned on
+    wpa_supp = open('./static/wpaconfigs/wpa_supplicant.conf', 'w')
+    wpa_supp.write('ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev\n')
+    wpa_supp.write('update_config=1\n\n')
     
-    # set up dnsmasq
+    wpa_supp.write('network={\n')
+    wpa_supp.write('\tssid="' + ssid + '"\n')
+    wpa_supp.write('\tpsk="' + wifi_key + '"\n')
+    wpa_supp.write('}')
+    wpa_supp.close()
+    os.system('sudo mv ./static/wpaconfigs/wpa_supplicant.conf /etc/wpa_supplicant/')
+
     
-    # set up dhcpd
-    
-    return {"name": ssid, "password": wifi_key}
+    return templates.TemplateResponse("reboot.html", \
+        {"request": request})
 
 @app.post("/routed_ap/")
 async def routed_ap(request: Request, ap_interface: str = Form(...), wifi_interface: str = Form(...)):
