@@ -9,6 +9,7 @@ from shutil import which
 
 from pydantic import BaseModel
 
+import os
 import subprocess
 
 
@@ -76,17 +77,23 @@ async def start_hotspot(interface: str = Form(...), hotspot_name: str = Form(...
     # 1. remove wpa_supplicant
     # os.system('rm /etc/wpa_supplicant/wpa_supplicant.conf')
     # set up new dhcpcd
-    os.system('mv /etc/dhcpcd.conf /etc/dhcpcd.conf.original')
-    os.system('mv ./static/hotspotconfigs/dhcpcd.conf /etc/')
+    os.system('sudo mv /etc/dhcpcd.conf /etc/dhcpcd.conf.original')
+    os.system('sudo mv ./static/hotspotconfigs/dhcpcd.conf /etc/')
     # same but for dnsmasq
-    os.system('mv /etc/dnsmasq.conf /etc/dnsmasq.conf.original')
-    os.system('mv ./static/hotspotconfigs/dnsmasq.conf /etc/')
+    os.system('sudo mv /etc/dnsmasq.conf /etc/dnsmasq.conf.original')
+    os.system('sudo mv ./static/hotspotconfigs/dnsmasq.conf /etc/')
     
     # set up hostapd
     # this is where we will inject the hotspot name
-    os.system('mv ./static/hotspotconfigs/hostapd.conf /etc/')
+    # ~ interface=wlan0
+    # ~ driver=nl80211
+    # ~ ssid=temp-ssid
+    # ~ channel=1
+
+    os.system('sudo mv ./static/hotspotconfigs/hostapd.conf /etc/')
     
     # then we'll want to reboot your pi
+    os.system('sudo reboot')
     
     return {"interface": interface, "hotspot_name": hotspot_name}
 
